@@ -42,25 +42,87 @@ AWS_Pagos_Python/
 
 ```mermaid
 flowchart TD
-  subgraph API_Gateway["API Gateway"]
+  subgraph Client["Cliente"]
+    WEB[Web App]
+    MOBILE[Mobile App]
+    API_CLIENT[API Client]
+  end
+
+  subgraph Discovery["🔍 Service Discovery"]
+    SD[Service Registry<br/>AWS ELB/Route53]
+  end
+
+  subgraph Gateway["🌐 API Gateway"]
+    APIGW[API Gateway<br/>Authentication Layer]
+  end
+
+  subgraph Auth["🔐 Authentication Service"]
+    AUTH[auth_microservice<br/>- /auth/register<br/>- /auth/login<br/>- /auth/logout<br/>Cognito + RDS]
+  end
+
+  subgraph Services["🚀 Protected Microservices"]
     direction TB
-    A1[Usuarios] -->|JWT| API_Gateway
-    A2[Accounts] --> API_Gateway
-    A3[Transactions] --> API_Gateway
+    PAYMENT[payment_microservice<br/>- Stripe/PayPal Integration<br/>- Payment Processing<br/>- Refunds]
+    
+    TRANSACTION[transactions_microservice<br/>- Transaction History<br/>- Balance Management<br/>- Reports]
+    
+    NOTIFICATION[notifications_microservice<br/>- Email (SES)<br/>- Push Notifications<br/>- Webhooks]
   end
 
-  subgraph Microservices["Microservicios"]
-    direction LR
-    Users[Usuarios & Auth] 
-    Accounts[Cuentas]
-    Transactions[Pagos/Transacciones] 
-    Notifications[Notificaciones (SNS/SQS)]
+  subgraph Data["💾 Data Layer"]
+    RDS[(PostgreSQL RDS<br/>- users<br/>- transactions<br/>- payments<br/>- notifications)]
+    COGNITO[(AWS Cognito<br/>User Pool)]
   end
 
-  Users --> Accounts
-  Users --> Transactions
-  Accounts --> Transactions
-  Transactions --> Notifications
+  subgraph External["🔌 External Services"]
+    SES[AWS SES<br/>Email]
+    SNS[AWS SNS<br/>Push Notifications]
+    STRIPE[Stripe API<br/>Payments]
+  end
+
+  %% Client connections
+  WEB --> APIGW
+  MOBILE --> APIGW
+  API_CLIENT --> APIGW
+
+  %% Service Discovery
+  SD -.->|Service Registration| AUTH
+  SD -.->|Service Registration| PAYMENT
+  SD -.->|Service Registration| TRANSACTION
+  SD -.->|Service Registration| NOTIFICATION
+
+  %% API Gateway routing
+  APIGW -->|Authentication Required| AUTH
+  APIGW -->|JWT Validation| PAYMENT
+  APIGW -->|JWT Validation| TRANSACTION
+  APIGW -->|JWT Validation| NOTIFICATION
+
+  %% Service interactions
+  AUTH --> COGNITO
+  AUTH --> RDS
+  
+  PAYMENT -->|Create Transaction| TRANSACTION
+  PAYMENT -->|Send Receipt| NOTIFICATION
+  PAYMENT --> STRIPE
+  PAYMENT --> RDS
+  
+  TRANSACTION -->|Balance Updates| NOTIFICATION
+  TRANSACTION --> RDS
+  
+  NOTIFICATION --> SES
+  NOTIFICATION --> SNS
+  NOTIFICATION --> RDS
+
+  %% Styling
+  classDef auth fill:#e1f5fe
+  classDef service fill:#f3e5f5
+  classDef data fill:#e8f5e8
+  classDef external fill:#fff3e0
+  
+  class AUTH auth
+  class PAYMENT,TRANSACTION,NOTIFICATION service
+  class RDS,COGNITO data
+  class SES,SNS,STRIPE external
 ```
 
 ## Preparing Microservice
