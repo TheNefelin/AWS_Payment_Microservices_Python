@@ -14,36 +14,30 @@ AWS_Pagos_Python/
 │   └── requirements.txt
 │
 │── notifications_microservce/
-│   ├── requirements.txt
-│   └── Dockerfile
+│   ├── Dockerfile
+│   ├── main.py
+│   └── requirements.txt
+│
+│── payment_microservice/
+│   ├── Dockerfile
+│   ├── main.py
+│   └── requirements.txt
 │
 │── transactions_microservice/
-│   ├── app/
-│   ├── tests/
-│   ├── requirements.txt
-│   └── Dockerfile
-│
-│── users_microservice/
-│   ├── app/
-│   │   ├── auth.py
-│   │   ├── crud.py
-│   │   ├── db.py
-│   │   ├── main.py
-│   │   └── models.py
-│   ├── tests/
-│   ├── requirements.txt
-│   └── Dockerfile
+│   ├── Dockerfile
+│   ├── main.py
+│   └── requirements.txt
 │
 │── .dockerignore
 │── .gitignore
-│── api-gateway.yaml
-│── deployment-accounts.yaml
-│── deployment-notifications.yaml
-│── deployment-transactions.yaml
-│── deployment-users.yaml
 │── docker-compose.yml
+│── kubernetes_auth.yaml
+│── kubernetes_notifications.yaml
+│── kubernetes_payment.yaml
+│── kubernetes_transaction.yaml
+│── PostgreSQL.sql
 │── README.md
-└── run_all.bat
+└── run_docker_local.bat
 ```
 
 ```mermaid
