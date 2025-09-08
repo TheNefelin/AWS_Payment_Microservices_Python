@@ -79,12 +79,12 @@ def calculate_secret_hash(username, client_id, client_secret):
     return base64.b64encode(dig).decode()
 
 @app.post("/auth/register")
-async def register(request: RegisterRequest):
-    client = boto3.client('cognito-idp')
-    secret_hash = calculate_secret_hash(request.email, CLIENT_ID, CLIENT_SECRET)
-    conn = None
-    
+async def register(request: RegisterRequest):    
     try:
+        client = boto3.client('cognito-idp')
+        secret_hash = calculate_secret_hash(request.email, CLIENT_ID, CLIENT_SECRET)
+        conn = None
+
         # 1. Registrar usuario en Cognito
         response = client.sign_up(
             ClientId=CLIENT_ID,
@@ -137,11 +137,11 @@ async def register(request: RegisterRequest):
             db_pool.putconn(conn)  # Devolver conexión al pool
 
 @app.post("/auth/login")
-async def login(request: LoginRequest):
-    client = boto3.client('cognito-idp')
-    secret_hash = calculate_secret_hash(request.email, CLIENT_ID, CLIENT_SECRET)
-    
+async def login(request: LoginRequest):    
     try:
+        client = boto3.client('cognito-idp')
+        secret_hash = calculate_secret_hash(request.email, CLIENT_ID, CLIENT_SECRET)
+
         response = client.admin_initiate_auth(
             UserPoolId=USER_POOL_ID,
             ClientId=CLIENT_ID,
@@ -171,10 +171,10 @@ async def login(request: LoginRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/auth/logout")
-async def logout(request: LogoutRequest):
-    client = boto3.client('cognito-idp')
-    
+async def logout(request: LogoutRequest):    
     try:
+        client = boto3.client('cognito-idp')
+
         secret_hash = calculate_secret_hash(request.email, CLIENT_ID, CLIENT_SECRET)
         
         client.admin_user_global_sign_out(
