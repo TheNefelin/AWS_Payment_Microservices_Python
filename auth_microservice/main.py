@@ -1,0 +1,202 @@
+# main.py - Aplicación FastAPI local
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, EmailStr
+import boto3
+import os
+import hmac
+import hashlib
+import base64
+import psycopg2
+from psycopg2 import pool  # IMPORTACIÓN CORREGIDA
+from dotenv import load_dotenv
+
+# Cargar variables de entorno
+load_dotenv()
+
+# Variables de entorno GLOBALES (cargadas UNA SOLA VEZ)
+AWS_REGION = os.environ['AWS_REGION']
+USER_POOL_ID = os.environ['COGNITO_USER_POOL_ID']
+CLIENT_ID = os.environ['COGNITO_CLIENT_ID']
+CLIENT_SECRET = os.environ['COGNITO_CLIENT_SECRET']
+RDS_HOST = os.environ['RDS_HOST']
+RDS_NAME = os.environ['RDS_NAME']
+RDS_USER = os.environ['RDS_USER']
+RDS_PASS = os.environ['RDS_PASS']
+RDS_PORT = os.environ['RDS_PORT']
+
+# Pool de conexiones (CORREGIDO)
+db_pool = psycopg2.pool.SimpleConnectionPool(
+    1, 20,  # mín 1, máx 20 conexiones
+    host=RDS_HOST,
+    database="postgres",
+    user="postgres",
+    password=RDS_PASS,
+    port=5432
+)
+
+app = FastAPI(title="MicroPay API", version="1.0.0")
+
+# CORS para desarrollo
+app.add_middleware(
+    CORSMiddleware,
+    allow_credentials=True,    
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Modelos Pydantic
+class RegisterRequest(BaseModel):
+    email: EmailStr
+    password: str
+
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str
+
+class LogoutRequest(BaseModel):
+    email: str
+
+class TokenLogoutRequest(BaseModel):
+    access_token: str
+
+def calculate_secret_hash(username, client_id, client_secret):
+    message = username + client_id
+    dig = hmac.new(
+        client_secret.encode('utf-8'),
+        msg=message.encode('utf-8'),
+        digestmod=hashlib.sha256
+    ).digest()
+    return base64.b64encode(dig).decode()
+
+@app.post("/auth/register")
+async def register(request: RegisterRequest):
+    client = boto3.client('cognito-idp')
+    secret_hash = calculate_secret_hash(request.email, CLIENT_ID, CLIENT_SECRET)
+    conn = None
+    
+    try:
+        # 1. Registrar usuario en Cognito
+        response = client.sign_up(
+            ClientId=CLIENT_ID,
+            Username=request.email,
+            Password=request.password,
+            SecretHash=secret_hash,
+            UserAttributes=[{'Name': 'email', 'Value': request.email}]
+        )
+        
+        # 2. Verificar administrativamente
+        client.admin_confirm_sign_up(
+            UserPoolId=USER_POOL_ID,
+            Username=request.email
+        )
+        
+        # 3. Marcar email como verificado
+        client.admin_update_user_attributes(
+            UserPoolId=USER_POOL_ID,
+            Username=request.email,
+            UserAttributes=[
+                {'Name': 'email_verified', 'Value': 'true'}
+            ]
+        )
+        
+        # 4. Guardar en PostgreSQL usando el POOL
+        conn = db_pool.getconn()  # Obtener conexión del pool
+        
+        cur = conn.cursor()
+        cur.execute(
+            "INSERT INTO users (email, cognito_sub) VALUES (%s, %s)",
+            (request.email, response['UserSub'])
+        )
+        conn.commit()
+        cur.close()
+        
+        return {
+            "message": "Usuario registrado y verificado automáticamente",
+            "userSub": response['UserSub'],
+            "email": request.email
+        }
+        
+    except client.exceptions.UsernameExistsException:
+        raise HTTPException(status_code=400, detail="El usuario ya existe")
+    except psycopg2.IntegrityError:
+        raise HTTPException(status_code=400, detail="El usuario ya existe en el sistema")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        if conn:
+            db_pool.putconn(conn)  # Devolver conexión al pool
+
+@app.post("/auth/login")
+async def login(request: LoginRequest):
+    client = boto3.client('cognito-idp')
+    secret_hash = calculate_secret_hash(request.email, CLIENT_ID, CLIENT_SECRET)
+    
+    try:
+        response = client.admin_initiate_auth(
+            UserPoolId=USER_POOL_ID,
+            ClientId=CLIENT_ID,
+            AuthFlow='ADMIN_NO_SRP_AUTH',
+            AuthParameters={
+                'USERNAME': request.email,
+                'PASSWORD': request.password,
+                'SECRET_HASH': secret_hash
+            }
+        )
+        
+        auth_result = response['AuthenticationResult']
+        
+        return {
+            "message": "Login exitoso",
+            "access_token": auth_result['AccessToken'],
+            "refresh_token": auth_result['RefreshToken'],
+            "expires_in": auth_result['ExpiresIn'],
+            "token_type": auth_result['TokenType']
+        }
+        
+    except client.exceptions.NotAuthorizedException:
+        raise HTTPException(status_code=401, detail="Email o contraseña incorrectos")
+    except client.exceptions.UserNotFoundException:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/auth/logout")
+async def logout(request: LogoutRequest):
+    client = boto3.client('cognito-idp')
+    
+    try:
+        secret_hash = calculate_secret_hash(request.email, CLIENT_ID, CLIENT_SECRET)
+        
+        client.admin_user_global_sign_out(
+            UserPoolId=USER_POOL_ID,
+            Username=request.email
+        )
+        
+        return {"message": "Logout exitoso"}
+        
+    except client.exceptions.NotAuthorizedException:
+        raise HTTPException(status_code=401, detail="Token inválido o expirado")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/health")
+async def health():
+    return {"status": "healthy"}
+
+@app.get("/")
+async def root():
+    return {
+        "message": "MicroPay Auth Service", 
+        "status": "running",
+        "endpoints": {
+            "/auth/register": "POST - Registrar usuario",
+            "/auth/login": "POST - Login usuario",
+            "/auth/logout": "POST - Logout usuario"
+        }
+    }
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
