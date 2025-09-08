@@ -191,8 +191,8 @@ deactivate
 ### Consola CloudShell
 - Subir el archivo comprimido
 ```sh
-df -h
 docker system prune -a --volumes -f
+docker builder prune -f
 df -h
 ```
 ```sh
@@ -209,16 +209,48 @@ docker push 123.dkr.ecr.us-east-1.amazonaws.com/micropay-auth-service-repo:lates
 ```sh
 
 docker images
-df -h
 docker builder prune -f
 df -h
 cd ..
-rm -rf AWS_Api_Worker_SQS_SNS_S3_.NET8
+rm -rf AWS_Payment_Microservices_Python
 ```
 
 ---
 
+## **EB**: Elastic Beanstalk
+- **Environment tier**: Web server environment
+- **Application name**: micropay-eb-auth-service
+- **Platform**: Docker
+- **Platform branch**: Docker running on 64bit Amazon Linux 2023
+- **Platform version**: 4.7.0
+- **Upload your code**: check
+- **Version labe**: 1
+- **Local file**: Dockerrun.aws.zip
+- **Single instance**: check
+- **Service role**: LabRole
+- **EC2 instance profile**: LabInstanceProfile
+- **EC2 key pair**: vockey
+- **VPC**: default
+- **Public IP address**: Enable
+- **Instance subnets**: us-east-1a
+- **EC2 security groups**: micropay-sg-web
+- **Health reporting**: Basic
+- **Managed updates**: uncheck
+- **Environment properties**:
+  - Region
+    - **Name**: AWS_REGION
+    - **Value**: us-east-1
+  - SQS
+    - **Name**: COGNITO_USER_POOL_ID
+    - **Value**: https://sqs.us-east-1.amazonaws.com/123/monolitica-sqs
+  - SNS
+    - **Name**: SNS_TOPIC_ARN
+    - **Value**: arn:aws:sns:us-east-1:123:monolitica-sns
+  - Port
+    - **Name**: PORT
+    - **Value**: 3000
 
+---
 
 ## **EKS**: Elastic Kubernetes Service
 ### Clusters

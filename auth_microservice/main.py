@@ -9,7 +9,7 @@ import hashlib
 import base64
 import psycopg2
 from psycopg2 import pool  # IMPORTACIÓN CORREGIDA
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 
 # Cargar variables de entorno
 # load_dotenv()
@@ -30,7 +30,7 @@ db_pool = None
 
 # Pool de conexiones (CORREGIDO)
 try:
-    db_pool = psycopg2.pool.SimpleConnectionPool(
+    db_pool = pool.SimpleConnectionPool(
         1, 20,
         host=RDS_HOST,
         database=RDS_NAME,  # Usar variable de entorno
@@ -189,10 +189,6 @@ async def logout(request: LogoutRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/health")
-async def health():
-    return {"status": "healthy"}
-
 @app.get("/")
 async def root():
     return {
@@ -202,7 +198,14 @@ async def root():
             "/auth/register": "POST - Registrar usuario",
             "/auth/login": "POST - Login usuario",
             "/auth/logout": "POST - Logout usuario"
-        }
+        },
+        "AWS_REGION": AWS_REGION,
+        "COGNITO_USER_POOL_ID": USER_POOL_ID,
+        "COGNITO_CLIENT_ID": CLIENT_ID,
+        "RDS_HOST": RDS_HOST,
+        "RDS_NAME": RDS_NAME,
+        "RDS_USER": RDS_USER,
+        "RDS_PORT": RDS_PORT
     }
 
 if __name__ == "__main__":
