@@ -199,13 +199,16 @@ async def root():
             "/auth/login": "POST - Login usuario",
             "/auth/logout": "POST - Logout usuario"
         },
-        "AWS_REGION": AWS_REGION,
-        "COGNITO_USER_POOL_ID": USER_POOL_ID,
-        "COGNITO_CLIENT_ID": CLIENT_ID,
-        "RDS_HOST": RDS_HOST,
-        "RDS_NAME": RDS_NAME,
-        "RDS_USER": RDS_USER,
-        "RDS_PORT": RDS_PORT
+        "vrsion": "1.0.0",
+        AWS_REGION: AWS_REGION,
+        USER_POOL_ID: USER_POOL_ID,
+        CLIENT_ID: CLIENT_ID,
+        CLIENT_SECRET: CLIENT_SECRET,
+        RDS_HOST: RDS_HOST,
+        RDS_NAME: RDS_NAME,
+        RDS_USER: RDS_USER,
+        RDS_PASS: RDS_PASS,
+        RDS_PORT: RDS_PORT
     }
 
 if __name__ == "__main__":
