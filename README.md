@@ -48,33 +48,33 @@ flowchart TD
     API_CLIENT[API Client]
   end
 
-  subgraph Discovery["🔍 Service Discovery"]
+  subgraph Discovery["Service Discovery"]
     SD[Service Registry<br/>AWS ELB/Route53]
   end
 
-  subgraph Gateway["🌐 API Gateway"]
+  subgraph Gateway["API Gateway"]
     APIGW[API Gateway<br/>Authentication Layer]
   end
 
-  subgraph Auth["🔐 Authentication Service"]
-    AUTH[auth_microservice<br/>- /auth/register<br/>- /auth/login<br/>- /auth/logout<br/>Cognito + RDS]
+  subgraph Auth["Authentication Service"]
+    AUTH[auth_microservice<br/>register, login, logout<br/>Cognito + RDS]
   end
 
-  subgraph Services["🚀 Protected Microservices"]
+  subgraph Services["Protected Microservices"]
     direction TB
-    PAYMENT[payment_microservice<br/>- Stripe/PayPal Integration<br/>- Payment Processing<br/>- Refunds]
+    PAYMENT[payment_microservice<br/>Stripe/PayPal Integration<br/>Payment Processing]
     
-    TRANSACTION[transactions_microservice<br/>- Transaction History<br/>- Balance Management<br/>- Reports]
+    TRANSACTION[transactions_microservice<br/>Transaction History<br/>Balance Management]
     
-    NOTIFICATION[notifications_microservice<br/>- Email (SES)<br/>- Push Notifications<br/>- Webhooks]
+    NOTIFICATION[notifications_microservice<br/>Email SES<br/>Push Notifications<br/>Webhooks]
   end
 
-  subgraph Data["💾 Data Layer"]
-    RDS[(PostgreSQL RDS<br/>- users<br/>- transactions<br/>- payments<br/>- notifications)]
+  subgraph Data["Data Layer"]
+    RDS[(PostgreSQL RDS<br/>users, transactions<br/>payments, notifications)]
     COGNITO[(AWS Cognito<br/>User Pool)]
   end
 
-  subgraph External["🔌 External Services"]
+  subgraph External["External Services"]
     SES[AWS SES<br/>Email]
     SNS[AWS SNS<br/>Push Notifications]
     STRIPE[Stripe API<br/>Payments]
