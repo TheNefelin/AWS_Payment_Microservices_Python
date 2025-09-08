@@ -79,7 +79,7 @@ pip list
 pip install fastapi uvicorn[standard] sqlalchemy psycopg2-binary boto3 python-dotenv pydantic[email]
 pip freeze > requirements.txt
 uvicorn main:app --reload
-curl http://127.0.0.1:8000        # curl http://127.0.0.1:8000/docs
+curl http://127.0.0.1:8000  # curl http://127.0.0.1:8000/docs
 pip install -r requirements.txt
 deactivate
 ```
@@ -107,6 +107,34 @@ deactivate
     - Destination: 0.0.0.0/0
     - Description:
 
+### micropay-sg-rds
+- **Name**: micropay-sg-web
+- **Description**: Acceso Web
+- **VPC**: default
+- **Inbound rules**:
+  - HTTP
+    - Type: HTTP
+    - Protocol: TCP
+    - Port range: 80
+    - Destination type: Anywhere-IPv4
+    - Destination: 0.0.0.0/0
+    - Description: Acceso Web
+  - HTTP
+    - Type: Custom TCP
+    - Protocol: TCP
+    - Port range: 8000
+    - Destination type: Anywhere-IPv4
+    - Destination: 0.0.0.0/0
+    - Description: Acceso Web    
+- **Outbound rules**:
+  - Outbound
+    - Type: All traffic
+    - Protocol: All
+    - Port range: All
+    - Destination type: Custom
+    - Destination: 0.0.0.0/0
+    - Description:    
+
 ## **RDS**: Relational Database Service
 ### PostgreSQL
 - **Creation method**: Standard create
@@ -129,6 +157,8 @@ deactivate
 - **Monitoring**: Database Insights - Standard
 - **Enhanced Monitoring**: Disabled  
 
+---
+
 ## **Cognito**:
 ### Create user pool
 - **Application type**: Machine-to-machine application
@@ -144,3 +174,74 @@ deactivate
 ### Cognito - App clients - micropay-cognito - edit
 - **Sign in with username and password: ALLOW_USER_PASSWORD_AUTH**: check
 - **Sign in with server-side administrative credentials: ALLOW_ADMIN_USER_PASSWORD_AUTH**: check
+
+---
+
+## **ECR**: Elastic Container Registry
+### Repositorio - products-service-repo
+- **Repository name**: micropay-auth-service-repo
+- **Image tag mutability**: Mutable
+- **Mutable tag exclusions**:
+- **Encryption configuration**: AES-256
+- **View push commands**
+
+---
+
+## **CloudShell**:
+### Consola CloudShell
+- Subir el archivo comprimido
+```sh
+df -h
+docker system prune -a --volumes -f
+df -h
+```
+```sh
+git clone https://github.com/TheNefelin/AWS_Payment_Microservices_Python.git
+cd AWS_Payment_Microservices_Python
+ls
+```
+```sh
+aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 123.dkr.ecr.us-east-1.amazonaws.com
+docker build -f auth_microservice/Dockerfile -t micropay-auth-service-repo ./auth_microservice
+docker tag micropay-auth-service-repo:latest 123.dkr.ecr.us-east-1.amazonaws.com/micropay-auth-service-repo:latest
+docker push 123.dkr.ecr.us-east-1.amazonaws.com/micropay-auth-service-repo:latest
+```
+```sh
+
+docker images
+df -h
+docker builder prune -f
+df -h
+cd ..
+rm -rf AWS_Api_Worker_SQS_SNS_S3_.NET8
+```
+
+---
+
+
+
+## **EKS**: Elastic Kubernetes Service
+### Clusters
+- **Configuration options**: Custom configuration
+- **Use EKS Auto Mode**_ uncheck
+- **Name**: micropay-eks-cluster
+- **Cluster IAM role**: LabEksClusterRole
+- **EKS API**: check
+- **ARC Zonal shift**: disabled
+- **VPC**: default
+- **Subnets**: default
+- **Additional security groups**: micropay-sg-service
+- **Cluster endpoint access**: Public and private
+
+### Clusters - Compute - Add node group
+- **Name**: ng-general
+- **Node IAM role**: LabRole
+- **AMI type**: Amazon Linux 2023 (x86_64)
+- **Instance types**: t3.medium
+- **Disk size**: 20 GiB
+- **Desired size**: 2
+- **Minimum size**: 2
+- **Maximum size**: 4
+- **Subnets** default
+
+### Clusters - Resources - Workload ???

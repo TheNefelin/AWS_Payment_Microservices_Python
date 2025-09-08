@@ -12,28 +12,36 @@ from psycopg2 import pool  # IMPORTACIÓN CORREGIDA
 from dotenv import load_dotenv
 
 # Cargar variables de entorno
-load_dotenv()
+# load_dotenv()
 
 # Variables de entorno GLOBALES (cargadas UNA SOLA VEZ)
-AWS_REGION = os.environ['AWS_REGION']
-USER_POOL_ID = os.environ['COGNITO_USER_POOL_ID']
-CLIENT_ID = os.environ['COGNITO_CLIENT_ID']
-CLIENT_SECRET = os.environ['COGNITO_CLIENT_SECRET']
-RDS_HOST = os.environ['RDS_HOST']
-RDS_NAME = os.environ['RDS_NAME']
-RDS_USER = os.environ['RDS_USER']
-RDS_PASS = os.environ['RDS_PASS']
-RDS_PORT = os.environ['RDS_PORT']
+AWS_REGION = os.environ.get('AWS_REGION', 'us-east-1')
+USER_POOL_ID = os.environ.get('COGNITO_USER_POOL_ID')
+CLIENT_ID = os.environ.get('COGNITO_CLIENT_ID')
+CLIENT_SECRET = os.environ.get('COGNITO_CLIENT_SECRET')
+RDS_HOST = os.environ.get('RDS_HOST')
+RDS_NAME = os.environ.get('RDS_NAME', 'postgres')
+RDS_USER = os.environ.get('RDS_USER', 'postgres')
+RDS_PASS = os.environ.get('RDS_PASS')
+RDS_PORT = os.environ.get('RDS_PORT', '5432')
+
+# --- Configuración del pool de conexiones ---
+db_pool = None
 
 # Pool de conexiones (CORREGIDO)
-db_pool = psycopg2.pool.SimpleConnectionPool(
-    1, 20,  # mín 1, máx 20 conexiones
-    host=RDS_HOST,
-    database="postgres",
-    user="postgres",
-    password=RDS_PASS,
-    port=5432
-)
+try:
+    db_pool = psycopg2.pool.SimpleConnectionPool(
+        1, 20,
+        host=RDS_HOST,
+        database=RDS_NAME,  # Usar variable de entorno
+        user=RDS_USER,
+        password=RDS_PASS,
+        port=RDS_PORT         # Usar variable de entorno
+    )
+    print("✅ Pool de conexiones a PostgreSQL creado exitosamente")
+except Exception as e:
+    print(f"❌ Error creando el pool de conexiones: {str(e)}")
+    db_pool = None
 
 app = FastAPI(title="MicroPay API", version="1.0.0")
 

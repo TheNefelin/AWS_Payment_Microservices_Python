@@ -1,0 +1,50 @@
+{
+  "AWSEBDockerrunVersion": "1",
+  "Image": {
+    "Name": "tu-cuenta-id.dkr.ecr.region.amazonaws.com/tu-repositorio:tag",
+    "Update": "true"
+  },
+  "Ports": [
+    {
+      "ContainerPort": 8000
+    }
+  ],
+  "Environment": [
+    {
+      "Name": "AWS_REGION",
+      "Value": "us-east-1"
+    },
+    {
+      "Name": "COGNITO_USER_POOL_ID",
+      "Value": ""
+    },
+    {
+      "Name": "COGNITO_CLIENT_ID",
+      "Value": ""
+    },
+    {
+      "Name": "COGNITO_CLIENT_SECRET",
+      "Value": ""
+    },
+    {
+      "Name": "RDS_HOST",
+      "Value": ""
+    },
+    {
+      "Name": "RDS_NAME",
+      "Value": "postgres"
+    },
+    {
+      "Name": "RDS_USER",
+      "Value": "postgres"
+    },
+    {
+      "Name": "RDS_PASS",
+      "Value": ""
+    },
+    {
+      "Name": "RDS_PORT",
+      "Value": "5432"
+    }
+  ]
+}
