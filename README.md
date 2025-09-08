@@ -4,16 +4,16 @@
 ```
 AWS_Pagos_Python/
 │
-│── microservice_auth/
+│── auth_microservice/
 │   ├── .env
+│   ├── .env.dev
 │   ├── Dockerfile
+│   ├── dockerrun.aws.json
 │   ├── main.py
 │   ├── README.md
 │   └── requirements.txt
 │
 │── notifications_microservce/
-│   ├── app/
-│   ├── tests/
 │   ├── requirements.txt
 │   └── Dockerfile
 │
@@ -125,7 +125,14 @@ deactivate
     - Port range: 8000
     - Destination type: Anywhere-IPv4
     - Destination: 0.0.0.0/0
-    - Description: Acceso Web    
+    - Description: Acceso Web
+  - PostgreSQL
+    - Type: PostgreSQL
+    - Protocol: TCP
+    - Port range: 5432
+    - Destination type: Anywhere-IPv4
+    - Destination: 0.0.0.0/0
+    - Description: Acceso PostgreSQL    
 - **Outbound rules**:
   - Outbound
     - Type: All traffic
@@ -156,6 +163,8 @@ deactivate
 - **Security groups**: micropay-sg-rds
 - **Monitoring**: Database Insights - Standard
 - **Enhanced Monitoring**: Disabled  
+
+### [PostgreSQL.sql](PostgreSQL.sql)
 
 ---
 
@@ -189,7 +198,6 @@ deactivate
 
 ## **CloudShell**:
 ### Consola CloudShell
-- Subir el archivo comprimido
 ```sh
 docker system prune -a --volumes -f
 docker builder prune -f
@@ -236,44 +244,27 @@ rm -rf AWS_Payment_Microservices_Python
 - **EC2 security groups**: micropay-sg-web
 - **Health reporting**: Basic
 - **Managed updates**: uncheck
-- **Environment properties**:
-  - Region
-    - **Name**: AWS_REGION
-    - **Value**: us-east-1
-  - SQS
-    - **Name**: COGNITO_USER_POOL_ID
-    - **Value**: https://sqs.us-east-1.amazonaws.com/123/monolitica-sqs
-  - SNS
-    - **Name**: SNS_TOPIC_ARN
-    - **Value**: arn:aws:sns:us-east-1:123:monolitica-sns
-  - Port
-    - **Name**: PORT
-    - **Value**: 3000
+
+### (Redeploy image) Micropay-eb-auth-service-env - Upload and deploy
+- **Upload application**: Dockerrun.aws.zip
+- **Version label**: 2
+- **Deploy**:
+
+### [Dockerrun.aws.json](/auth_microservice/Dockerrun.aws.json)
 
 ---
 
-## **EKS**: Elastic Kubernetes Service
-### Clusters
-- **Configuration options**: Custom configuration
-- **Use EKS Auto Mode**_ uncheck
-- **Name**: micropay-eks-cluster
-- **Cluster IAM role**: LabEksClusterRole
-- **EKS API**: check
-- **ARC Zonal shift**: disabled
-- **VPC**: default
-- **Subnets**: default
-- **Additional security groups**: micropay-sg-service
-- **Cluster endpoint access**: Public and private
+## **Api Gateway**:
+- **Choose an API type**: HTTP API
+- **API name**: micropay-api-gateway
+  - **Integrations**:
+    - HTTP
+    - Method: ANY
+    - URL endpoint: http://micropay-eb-auth-service-env.eba-123.us-east-1.elasticbeanstalk.com
+- **Configure routes**:
+  - Auth
+    - **Method**: ANY
+    - **Resource path**: /
+    - **Integration target**: URL endpoint Auth
 
-### Clusters - Compute - Add node group
-- **Name**: ng-general
-- **Node IAM role**: LabRole
-- **AMI type**: Amazon Linux 2023 (x86_64)
-- **Instance types**: t3.medium
-- **Disk size**: 20 GiB
-- **Desired size**: 2
-- **Minimum size**: 2
-- **Maximum size**: 4
-- **Subnets** default
-
-### Clusters - Resources - Workload ???
+---

@@ -24,7 +24,7 @@ RDS_USER = os.environ.get('RDS_USER', 'postgres')
 RDS_PASS = os.environ.get('RDS_PASS')
 RDS_PORT = os.environ.get('RDS_PORT', '5432')
 
-app = FastAPI(title="MicroPay API", version="1.0.1")
+app = FastAPI(title="MicroPay API", version="1.0.1", root_path="/")
 
 # CORS
 app.add_middleware(
