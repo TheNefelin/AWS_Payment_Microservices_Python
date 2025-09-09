@@ -24,7 +24,7 @@ RDS_USER = os.environ.get('RDS_USER', 'postgres')
 RDS_PASS = os.environ.get('RDS_PASS')
 RDS_PORT = os.environ.get('RDS_PORT', '5432')
 
-app = FastAPI(title="MicroPay API", version="1.0.1", root_path="/")
+app = FastAPI(title="MicroPay API", version="1.0.0", root_path="/")
 
 # CORS
 app.add_middleware(
@@ -182,7 +182,7 @@ async def root():
             "/auth/login": "POST - Login usuario", 
             "/auth/logout": "POST - Logout usuario"
         },
-        "version": "1.0.1",  # Fixed typo
+        "version": "1.0.0",  # Fixed typo
         "config_status": {
             "aws_region": AWS_REGION,
             "cognito_configured": "✅" if all([USER_POOL_ID, CLIENT_ID, CLIENT_SECRET]) else "❌",

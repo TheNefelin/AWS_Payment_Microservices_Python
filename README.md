@@ -163,7 +163,7 @@ deactivate
     - Destination: 0.0.0.0/0
     - Description:
 
-### micropay-sg-rds
+### micropay-sg-web
 - **Name**: micropay-sg-web
 - **Description**: Acceso Web
 - **VPC**: default
@@ -175,7 +175,7 @@ deactivate
     - Destination type: Anywhere-IPv4
     - Destination: 0.0.0.0/0
     - Description: Acceso Web
-  - HTTP
+  - Custom TCP
     - Type: Custom TCP
     - Protocol: TCP
     - Port range: 8000
@@ -242,6 +242,8 @@ deactivate
 
 ---
 
+[ECR + EB + auth microservice](/auth_microservice/Dockerfile)
+
 ## **ECR**: Elastic Container Registry
 ### Repositorio - products-service-repo
 - **Repository name**: micropay-auth-service-repo
@@ -282,27 +284,31 @@ rm -rf AWS_Payment_Microservices_Python
 ---
 
 ## **EB**: Elastic Beanstalk
+- **Application name**: micropay-eb-application
+
+## **Create environment**: micropay-eb-auth
 - **Environment tier**: Web server environment
-- **Application name**: micropay-eb-auth-service
+- **Application name**: micropay-eb-application
+- **Environment name**: micropay-eb-auth-env
 - **Platform**: Docker
 - **Platform branch**: Docker running on 64bit Amazon Linux 2023
 - **Platform version**: 4.7.0
 - **Upload your code**: check
 - **Version labe**: 1
-- **Local file**: Dockerrun.aws.zip
+- **Local file**: aws.auth.dockerrun.zip
 - **Single instance**: check
 - **Service role**: LabRole
 - **EC2 instance profile**: LabInstanceProfile
 - **EC2 key pair**: vockey
 - **VPC**: default
-- **Public IP address**: Enable
-- **Instance subnets**: us-east-1a
+- **Public IP address**: uncheck
+- **Instance subnets**: default
 - **EC2 security groups**: micropay-sg-web
 - **Health reporting**: Basic
 - **Managed updates**: uncheck
 
-### (Redeploy image) Micropay-eb-auth-service-env - Upload and deploy
-- **Upload application**: Dockerrun.aws.zip
+### (Redeploy image) micropay-eb-auth - Upload and deploy
+- **Upload application**: aws.auth.dockerrun.zip
 - **Version label**: 2
 - **Deploy**:
 

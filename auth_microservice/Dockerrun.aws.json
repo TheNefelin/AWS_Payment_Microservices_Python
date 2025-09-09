@@ -1,7 +1,7 @@
 {
   "AWSEBDockerrunVersion": "1",
   "Image": {
-    "Name": "tu-cuenta-id.dkr.ecr.region.amazonaws.com/tu-repositorio:tag",
+    "Name": "123.dkr.ecr.us-east-1.amazonaws.com/micropay-auth-service-repo:latest",
     "Update": "true"
   },
   "Ports": [
