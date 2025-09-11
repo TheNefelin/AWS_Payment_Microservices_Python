@@ -196,7 +196,12 @@ deactivate
     - Port range: All
     - Destination type: Custom
     - Destination: 0.0.0.0/0
-    - Description:    
+    - Description:
+
+## **SNS**: Simple Notification Service 
+### Topics
+- **Topics**: Standard
+- **Name**: micropay-sns
 
 ## **RDS**: Relational Database Service
 ### PostgreSQL
@@ -315,6 +320,14 @@ rm -rf AWS_Payment_Microservices_Python
 ### [Dockerrun.aws.json](/auth_microservice/Dockerrun.aws.json)
 
 ---
+
+## **Api Gateway**:
+- **Choose an API type**: HTTP API
+- **API name**: micropay-api-gateway
+### Api Gateway - Authorization - Create
+- **Authorizer settings**: micropay-jwt-authorizer
+- **Issuer URL**: Cognito - Token signing key URL
+- **Audience**: Cognito - App clients - Client ID
 
 ## **Api Gateway**:
 - **Choose an API type**: HTTP API
