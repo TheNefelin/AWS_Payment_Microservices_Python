@@ -188,7 +188,7 @@ deactivate
     - Port range: 5432
     - Destination type: Anywhere-IPv4
     - Destination: 0.0.0.0/0
-    - Description: Acceso PostgreSQL    
+    - Description: Acceso PostgreSQL
 - **Outbound rules**:
   - Outbound
     - Type: All traffic
@@ -300,7 +300,7 @@ rm -rf AWS_Payment_Microservices_Python
 - **Platform version**: 4.7.0
 - **Upload your code**: check
 - **Version labe**: 1
-- **Local file**: aws.auth.dockerrun.zip
+- **Local file**: Dockerrun.aws.json
 - **Single instance**: check
 - **Service role**: LabRole
 - **EC2 instance profile**: LabInstanceProfile
@@ -313,7 +313,7 @@ rm -rf AWS_Payment_Microservices_Python
 - **Managed updates**: uncheck
 
 ### (Redeploy image) micropay-eb-auth - Upload and deploy
-- **Upload application**: aws.auth.dockerrun.zip
+- **Upload application**: Dockerrun.aws.json
 - **Version label**: 2
 - **Deploy**:
 

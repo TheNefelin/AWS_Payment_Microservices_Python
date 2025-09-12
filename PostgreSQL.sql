@@ -53,6 +53,11 @@ CREATE TABLE transactions (
 INSERT INTO 
     users (cognito_id, email) 
 VALUES
+    ('cognito-user-1', 'admin@company.com')
+
+INSERT INTO 
+    users (cognito_id, email) 
+VALUES
     ('cognito-user-1', 'john@example.com'),
     ('cognito-user-2', 'jane@example.com');
 
