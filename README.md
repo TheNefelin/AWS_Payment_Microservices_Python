@@ -198,10 +198,14 @@ deactivate
     - Destination: 0.0.0.0/0
     - Description:
 
+---
+
 ## **SNS**: Simple Notification Service 
 ### Topics
 - **Topics**: Standard
 - **Name**: micropay-sns
+
+---
 
 ## **RDS**: Relational Database Service
 ### PostgreSQL
@@ -223,7 +227,7 @@ deactivate
 - **Public access**: Yes
 - **Security groups**: micropay-sg-rds
 - **Monitoring**: Database Insights - Standard
-- **Enhanced Monitoring**: Disabled  
+- **Enable Performance insights**: Disabled  
 
 ### [PostgreSQL.sql](PostgreSQL.sql)
 

@@ -27,6 +27,10 @@
       "Value": ""
     },
     {
+      "Name": "SNS_TOPIC_ARN",
+      "Value": ""
+    },
+    {
       "Name": "RDS_HOST",
       "Value": ""
     },
