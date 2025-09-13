@@ -140,16 +140,100 @@ def logout_cognito_user(client, email: str):
         Username=email
     )
 
-def publish_user_sns_message(event_type: str, email: str, user_id: str, extra_data: dict = None):
+# Suscribir email a SNS
+def subscribe_email_to_sns(email: str):
+    if not SNS_TOPIC_ARN:
+        raise HTTPException(status_code=500, detail="SNS_TOPIC_ARN no configurado")
+        
     sns_client = get_sns_client()
+    
+    response = sns_client.subscribe(
+        TopicArn=SNS_TOPIC_ARN,
+        Protocol='email',
+        Endpoint=email
+    )
+    
+    return response['SubscriptionArn']
 
+# Cancelar suscripción email en SNS
+def unsubscribe_email(subscription_arn: str):
+    if not subscription_arn:
+        return True
+        
+    sns_client = get_sns_client()
+    
+    sns_client.unsubscribe(SubscriptionArn=subscription_arn)
+    return True
+
+# Verificar estado de suscripción
+def check_subscription_status(email: str):
+    if not SNS_TOPIC_ARN:
+        raise HTTPException(status_code=500, detail="SNS_TOPIC_ARN no configurado")
+        
+    sns_client = get_sns_client()
+    
+    response = sns_client.list_subscriptions_by_topic(TopicArn=SNS_TOPIC_ARN)
+    
+    for subscription in response['Subscriptions']:
+        if subscription['Endpoint'] == email:
+            return {
+                "status": subscription['SubscriptionArn'] == 'PendingConfirmation' and "pending" or "confirmed",
+                "subscription_arn": subscription['SubscriptionArn']
+            }
+    
+    return {"status": "not_subscribed", "subscription_arn": None}
+
+def validate_sns_subscription(email: str):
+    # Valida el estado de suscripción SNS:
+    # - Si no está suscrito: lo suscribe automáticamente
+    # - Si está pendiente: retorna estado pending
+    # - Si está confirmado: retorna estado confirmed
+    try:
+        subscription_status = check_subscription_status(email)
+        
+        # Si no está suscrito, suscribirlo automáticamente
+        if subscription_status["status"] == "not_subscribed":
+            subscription_arn = subscribe_email_to_sns(email)
+            return {
+                "status": "pending",
+                "subscription_arn": subscription_arn,
+                "message": "Suscripción creada. Confirma tu email para recibir notificaciones."
+            }
+        
+        # Si ya está suscrito (pending o confirmed)
+        status_messages = {
+            "pending": "Suscripción pendiente. Confirma tu email para recibir notificaciones.",
+            "confirmed": "Suscripción confirmada. Recibirás notificaciones por email."
+        }
+        
+        return {
+            "status": subscription_status["status"],
+            "subscription_arn": subscription_status["subscription_arn"],
+            "message": status_messages.get(subscription_status["status"], "Estado desconocido")
+        }
+        
+    except Exception as e:
+        print(f"Error validating SNS subscription: {e}")
+        return {
+            "status": "error",
+            "subscription_arn": None,
+            "message": f"Error al gestionar suscripción: {str(e)}"
+        }
+
+# Publicar mensaje en SNS
+def publish_user_sns_message(event_type: str, email: str, user_id: str, extra_data: dict = None):
+    if not SNS_TOPIC_ARN:
+        raise HTTPException(status_code=500, detail="SNS_TOPIC_ARN no configurado")
+        
+    sns_client = get_sns_client()
+    
     message_data = {
         "event_type": event_type,
         "email": email,
         "user_id": user_id,
         "timestamp": datetime.utcnow().isoformat()
     }
-
+    
     if extra_data:
         message_data.update(extra_data)
         
@@ -158,21 +242,17 @@ def publish_user_sns_message(event_type: str, email: str, user_id: str, extra_da
         Message=json.dumps(message_data),
         Subject=f"User Event: {event_type}"
     )
-
+    
     return response['MessageId']
 
 @app.post("/auth/register")
 async def register(request: RegisterRequest):    
     try:
-        client = get_cognito_client()
-        
-        # Configurar usuario en Cognito
+        client = get_cognito_client()        
         user_sub = setup_cognito_user(client, request.email, request.password)
-        
-        # Guardar en PostgreSQL
         save_user_to_db(user_sub, request.email)
+        sns_validation = validate_sns_subscription(request.email)
         
-        # Publicar evento de registro en SNS
         publish_user_sns_message(
             event_type="user_registered",
             email=request.email,
@@ -182,7 +262,11 @@ async def register(request: RegisterRequest):
         return {
             "message": "Usuario registrado y verificado automáticamente",
             "userSub": user_sub,
-            "email": request.email
+            "email": request.email,
+            "sns_subscription": {
+                "status": sns_validation["status"],
+                "message": sns_validation["message"]
+            }
         }
         
     except client.exceptions.UsernameExistsException:
@@ -198,13 +282,18 @@ async def login(request: LoginRequest):
         client = get_cognito_client()
         response = login_cognito_user(client, request.email, request.password)        
         auth_result = response['AuthenticationResult']
+        sns_validation = validate_sns_subscription(request.email)
         
         return {
             "message": "Login exitoso",
             "access_token": auth_result['AccessToken'],
             "refresh_token": auth_result['RefreshToken'],
             "expires_in": auth_result['ExpiresIn'],
-            "token_type": auth_result['TokenType']
+            "token_type": auth_result['TokenType'],
+            "sns_subscription": {
+                "status": sns_validation["status"],
+                "message": sns_validation["message"]
+            }
         }
         
     except client.exceptions.NotAuthorizedException:
