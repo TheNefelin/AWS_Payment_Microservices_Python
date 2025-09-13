@@ -1,7 +1,7 @@
 
 ## Preparing Microservice
 ```sh
-cd notifications_microservce
+cd transaction_microservice
 python -m venv venv
 venv\Scripts\activate
 pip list
@@ -12,3 +12,5 @@ curl http://127.0.0.1:8000  # curl http://127.0.0.1:8000/docs
 pip install -r requirements.txt
 deactivate
 ```
+
+

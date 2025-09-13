@@ -1,4 +1,4 @@
-# Dockerfile para transaction_microservice
+# Dockerfile para payment_microservice
 FROM python:3.12-slim
 
 # Establecer directorio de trabajo
