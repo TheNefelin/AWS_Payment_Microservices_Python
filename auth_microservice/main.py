@@ -145,12 +145,29 @@ def subscribe_email_to_sns(email: str):
     if not SNS_TOPIC_ARN:
         raise HTTPException(status_code=500, detail="SNS_TOPIC_ARN no configurado")
         
+    filter_policy={
+        "target": [
+            email,
+            "all"
+        ]
+    }
+            
     sns_client = get_sns_client()
-    
+
+    # Asignar la política al tema
+    sns_client.set_topic_attributes(
+        TopicArn=SNS_TOPIC_ARN,
+        AttributeName='Policy',
+        AttributeValue=json.dumps(policy)
+    )
+
     response = sns_client.subscribe(
         TopicArn=SNS_TOPIC_ARN,
         Protocol='email',
-        Endpoint=email
+        Endpoint=email,
+        Attributes={
+            'FilterPolicy': json.dumps(filter_policy)
+        }
     )
     
     return response['SubscriptionArn']

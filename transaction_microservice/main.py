@@ -134,7 +134,7 @@ def fetch_all_transactions():
     conn.close()
 
 # Publicar mensaje en SNS
-def publish_user_sns_message(subject: str, message_data: object):
+def publish_user_sns_message(subject: str, message_data: object, target_email: str):
   if not SNS_TOPIC_ARN:
     raise HTTPException(status_code=500, detail="SNS_TOPIC_ARN no configurado")
       
@@ -143,7 +143,13 @@ def publish_user_sns_message(subject: str, message_data: object):
   response = sns_client.publish(
     TopicArn=SNS_TOPIC_ARN,
     Message=json.dumps(message_data),
-    Subject=subject
+    Subject=subject,
+      MessageAttributes={
+        'target': {
+          'DataType': 'String',
+          'StringValue': target_email
+        }
+      }    
   )
   
   return response['MessageId']    
@@ -185,8 +191,8 @@ async def process_transaction(request: TransactionRequest):
       "timestamp": datetime.utcnow().isoformat()
     }
       
-    publish_user_sns_message("Transaccion Realizada",message_data_from)      
-    publish_user_sns_message("Transaccion Recibida", message_data_to)
+    publish_user_sns_message("Transaccion Realizada",message_data_from, request.email_from)      
+    publish_user_sns_message("Transaccion Recibida", message_data_to, request.email_to)
 
     return {
       "message": "Transacción procesada exitosamente",
