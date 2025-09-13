@@ -266,6 +266,10 @@ deactivate
 [ECR + EB + auth microservice](/auth_microservice/Dockerfile)
 [Dockerrun.aws.json](/auth_microservice/Dockerrun.aws.json)
 
+- transaction_microservice
+[ECR + EB + transaction microservice](/transaction_microservice/Dockerfile)
+[Dockerrun.aws.json](/transaction_microservice/Dockerrun.aws.json)
+
 ---
 
 ## **Api Gateway**:

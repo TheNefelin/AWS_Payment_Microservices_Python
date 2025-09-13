@@ -13,6 +13,8 @@ pip install -r requirements.txt
 deactivate
 ```
 
+---
+
 ## **ECR**: Elastic Container Registry
 ### Repositorio - products-service-repo
 - **Repository name**: micropay-auth-service-repo
@@ -71,6 +73,17 @@ rm -rf AWS_Payment_Microservices_Python
 - **EC2 security groups**: micropay-sg-web
 - **Health reporting**: Basic
 - **Managed updates**: uncheck
+- **Environment properties**: 
+  - **AWS_REGION**: us-east-1
+  - **COGNITO_USER_POOL_ID**: USER_POOL_ID
+  - **COGNITO_CLIENT_ID**: CLIENT_ID
+  - **COGNITO_CLIENT_SECRET**: CLIENT_SECRET
+  - **SNS_TOPIC_ARN**: SNS_ARN
+  - **RDS_HOST**: RDS_ENDPOINT
+  - **RDS_NAME**: postgres
+  - **RDS_USER**: postgres
+  - **RDS_PASS**: *****
+  - **RDS_PORT**: 5432
 
 ### (Redeploy image) Micropay-eb-auth-service-env - Upload and deploy
 - **Upload application**: Dockerrun.aws.zip
