@@ -81,7 +81,7 @@ rm -rf AWS_Payment_Microservices_Python
 {
   "AWSEBDockerrunVersion": "1",
   "Image": {
-    "Name": "tu-cuenta-id.dkr.ecr.region.amazonaws.com/tu-repositorio:tag",
+    "Name": "123.dkr.ecr.us-east-1.amazonaws.com/micropay-auth-service-repo:latest",
     "Update": "true"
   },
   "Ports": [
@@ -107,6 +107,10 @@ rm -rf AWS_Payment_Microservices_Python
       "Value": ""
     },
     {
+      "Name": "SNS_TOPIC_ARN",
+      "Value": ""
+    },
+    {
       "Name": "RDS_HOST",
       "Value": ""
     },
@@ -128,3 +132,4 @@ rm -rf AWS_Payment_Microservices_Python
     }
   ]
 }
+```

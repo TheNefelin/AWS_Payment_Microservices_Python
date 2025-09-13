@@ -1,5 +1,5 @@
 # main.py - Auth Microservice Refactorizado
-import datetime
+from datetime import datetime
 import json
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -240,7 +240,8 @@ async def root():
         "config_status": {
             "aws_region": AWS_REGION,
             "cognito_configured": "✅" if all([COGNITO_USER_POOL_ID, COGNITO_CLIENT_ID, COGNITO_CLIENT_SECRET]) else "❌",
-            "rds_configured": "✅" if all([RDS_HOST, RDS_PASS]) else "❌"
+            "rds_configured": "✅" if all([RDS_HOST, RDS_PASS]) else "❌",
+            "sns_configured": "✅" if SNS_TOPIC_ARN else "❌"
         }
     }
 

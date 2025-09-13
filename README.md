@@ -251,8 +251,6 @@ deactivate
 
 ---
 
-[ECR + EB + auth microservice](/auth_microservice/Dockerfile)
-
 ## **ECR**: Elastic Container Registry
 ### Repositorio - products-service-repo
 - **Repository name**: micropay-auth-service-repo
@@ -263,65 +261,10 @@ deactivate
 
 ---
 
-## **CloudShell**:
-### Consola CloudShell
-```sh
-docker system prune -a --volumes -f
-docker builder prune -f
-df -h
-```
-```sh
-git clone https://github.com/TheNefelin/AWS_Payment_Microservices_Python.git
-cd AWS_Payment_Microservices_Python
-ls
-```
-```sh
-aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 123.dkr.ecr.us-east-1.amazonaws.com
-docker build -f auth_microservice/Dockerfile -t micropay-auth-service-repo ./auth_microservice
-docker tag micropay-auth-service-repo:latest 123.dkr.ecr.us-east-1.amazonaws.com/micropay-auth-service-repo:latest
-docker push 123.dkr.ecr.us-east-1.amazonaws.com/micropay-auth-service-repo:latest
-```
-```sh
-
-docker images
-docker builder prune -f
-df -h
-cd ..
-rm -rf AWS_Payment_Microservices_Python
-```
-
----
-
-## **EB**: Elastic Beanstalk
-- **Application name**: micropay-eb-application
-
-## **Create environment**: micropay-eb-auth
-- **Environment tier**: Web server environment
-- **Application name**: micropay-eb-application
-- **Environment name**: micropay-eb-auth-env
-- **Platform**: Docker
-- **Platform branch**: Docker running on 64bit Amazon Linux 2023
-- **Platform version**: 4.7.0
-- **Upload your code**: check
-- **Version labe**: 1
-- **Local file**: Dockerrun.aws.json
-- **Single instance**: check
-- **Service role**: LabRole
-- **EC2 instance profile**: LabInstanceProfile
-- **EC2 key pair**: vockey
-- **VPC**: default
-- **Public IP address**: uncheck
-- **Instance subnets**: default
-- **EC2 security groups**: micropay-sg-web
-- **Health reporting**: Basic
-- **Managed updates**: uncheck
-
-### (Redeploy image) micropay-eb-auth - Upload and deploy
-- **Upload application**: Dockerrun.aws.json
-- **Version label**: 2
-- **Deploy**:
-
-### [Dockerrun.aws.json](/auth_microservice/Dockerrun.aws.json)
+## **EB**: Elastic Beanstalk (Option 1)
+- auth_microservice
+[ECR + EB + auth microservice](/auth_microservice/Dockerfile)
+[Dockerrun.aws.json](/auth_microservice/Dockerrun.aws.json)
 
 ---
 
