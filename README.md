@@ -27,6 +27,7 @@ AWS_Payment_Microservices_Python/
 │── docker-compose.yml
 │── kubernetes_auth.yaml
 │── kubernetes_transaction.yaml
+│── LICENSE.txt
 │── PostgreSQL.sql
 │── README.md
 └── run_docker_local.bat
