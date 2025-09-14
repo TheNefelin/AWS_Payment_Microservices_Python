@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-microservice
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: auth-microservice
+  template:
+    metadata:
+      labels:
+        app: auth-microservice
+    spec:
+      containers:
+      - name: auth-microservice
+        image: <YOUR_ECR_CATALOG_IMAGE>
+        ports:
+        - containerPort: 8000
+        env:
+        - name: AWS_REGION
+          value: us-east-1
+        - name: COGNITO_USER_POOL_ID
+          value: <VALUE>
+        - name: COGNITO_CLIENT_ID
+          value: <VALUE>
+        - name: COGNITO_CLIENT_SECRET
+          value: <VALUE>
+        - name: SNS_TOPIC_ARN
+          value: <VALUE>
+        - name: DB_HOST
+          value: <VALUE>
+        - name: DB_USER
+          value: postgres
+        - name: DB_NAME
+          value: postgres
+        - name: DB_PASS
+          value: <VALUE>
+        - name: DB_PORT
+          value: "5432"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-microservice
+spec:
+  type: ClusterIP
+  selector:
+    app: auth-microservice
+  ports:
+  - port: 8000
+    targetPort: 8000

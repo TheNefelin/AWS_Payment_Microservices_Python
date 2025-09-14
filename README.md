@@ -1,8 +1,8 @@
-# AWSPayment Microservice Python 3.12.10
+# AWS Payment Microservice Python 3.12.10
 
 ### Structure
 ```
-AWS_Pagos_Python/
+AWS_Payment_Microservices_Python/
 │
 │── auth_microservice/
 │   ├── .env
@@ -13,27 +13,19 @@ AWS_Pagos_Python/
 │   ├── README.md
 │   └── requirements.txt
 │
-│── notifications_microservce/
+│── transaction_microservice/
+│   ├── .env
+│   ├── .env.dev
 │   ├── Dockerfile
+│   ├── dockerrun.aws.json
 │   ├── main.py
-│   └── requirements.txt
-│
-│── payment_microservice/
-│   ├── Dockerfile
-│   ├── main.py
-│   └── requirements.txt
-│
-│── transactions_microservice/
-│   ├── Dockerfile
-│   ├── main.py
+│   ├── README.md
 │   └── requirements.txt
 │
 │── .dockerignore
 │── .gitignore
 │── docker-compose.yml
 │── kubernetes_auth.yaml
-│── kubernetes_notifications.yaml
-│── kubernetes_payment.yaml
 │── kubernetes_transaction.yaml
 │── PostgreSQL.sql
 │── README.md
@@ -126,9 +118,22 @@ flowchart TD
 ```
 
 ## Preparing Microservice
-- microservice_auth
+- auth_microservice
 ```sh
 cd auth_microservice
+python -m venv venv
+venv\Scripts\activate
+pip list
+pip install fastapi uvicorn[standard] sqlalchemy psycopg2-binary boto3 python-dotenv pydantic[email]
+pip freeze > requirements.txt
+uvicorn main:app --reload
+curl http://127.0.0.1:8000  # curl http://127.0.0.1:8000/docs
+pip install -r requirements.txt
+deactivate
+```
+- transaction_microservice
+```sh
+cd transaction_microservice
 python -m venv venv
 venv\Scripts\activate
 pip list
@@ -259,9 +264,103 @@ deactivate
 - **Encryption configuration**: AES-256
 - **View push commands**
 
+## **ECR**: Elastic Container Registry
+### Repositorio - products-service-repo
+- **Repository name**: micropay-transaction-service-repo
+- **Image tag mutability**: Mutable
+- **Mutable tag exclusions**:
+- **Encryption configuration**: AES-256
+- **View push commands**
+
 ---
 
-## **EB**: Elastic Beanstalk (Option 1)
+## **CloudShell**:
+### Consola CloudShell
+```sh
+docker system prune -a --volumes -f
+docker builder prune -f
+df -h
+```
+```sh
+git clone https://github.com/TheNefelin/AWS_Payment_Microservices_Python.git
+cd AWS_Payment_Microservices_Python
+```
+```sh
+aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 123.dkr.ecr.us-east-1.amazonaws.com
+```
+```sh
+docker build -f auth_microservice/Dockerfile -t micropay-auth-service-repo ./auth_microservice
+docker tag micropay-auth-service-repo:latest 123.dkr.ecr.us-east-1.amazonaws.com/micropay-auth-service-repo:latest
+docker push 123.dkr.ecr.us-east-1.amazonaws.com/micropay-auth-service-repo:latest
+```
+```sh
+docker build -f transaction_microservice/Dockerfile -t micropay-transaction-service-repo ./transaction_microservice
+docker tag micropay-transaction-service-repo:latest 123.dkr.ecr.us-east-1.amazonaws.com/micropay-transaction-service-repo:latest
+docker push 123.dkr.ecr.us-east-1.amazonaws.com/micropay-transaction-service-repo:latest
+```
+```sh
+docker images
+cd ..
+rm -rf AWS_Payment_Microservices_Python
+```
+
+---
+
+## **EKS**: Elastic Kubernetes Service
+### Clusters
+- **Configuration options**: Custom configuration
+- **Use EKS Auto Mode**_ uncheck
+- **Name**: micropay-eks-microservices
+- **Cluster IAM role**: LabEksClusterRole
+- **EKS API**: check
+- **ARC Zonal shift**: disabled
+- **VPC**: default
+- **Subnets**: default
+- **Additional security groups**: micropay-sg-web
+- **Cluster endpoint access**: Public and private
+
+### Clusters - Compute - Add node group
+- **Name**: ng-general
+- **Node IAM role**: LabRole
+- **AMI type**: Amazon Linux 2023 (x86_64)
+- **Instance types**: t3.medium
+- **Disk size**: 20 GiB
+- **Desired size**: 2
+- **Minimum size**: 2
+- **Maximum size**: 4
+- **Subnets** default
+
+---
+
+## **CloudShell**:
+### Consola CloudShell
+```sh
+cd AWS_Payment_Microservices_Python
+```
+- Update Kubernete Config (Connect kubectl to EKS)
+```sh
+aws eks update-kubeconfig --name micropay-eks-microservices --region <REGION>
+```
+```sh
+kubectl get nodes
+```
+```sh
+kubectl apply -f kubernetes_auth.yaml
+kubectl apply -f kubernetes_transaction.yaml
+```
+```sh
+kubectl get all
+```
+- Opcional
+```sh
+kubectl delete all --all
+kubectl delete configmap --all
+kubectl delete secret --all
+```
+
+---
+
+## **EB**: Elastic Beanstalk (opcional 1)
 - auth_microservice
 [ECR + EB + auth microservice](/auth_microservice/Dockerfile)
 [Dockerrun.aws.json](/auth_microservice/Dockerrun.aws.json)
