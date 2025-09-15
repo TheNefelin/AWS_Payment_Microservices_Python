@@ -41,36 +41,37 @@ flowchart TD
     API_CLIENT[API Client]
   end
 
-  subgraph Discovery["Service Discovery"]
-    SD[Service Registry<br/>AWS ELB/Route53]
+  subgraph AWS_APIGW["AWS API Gateway"]
+    APIGW[HTTP API Gateway<br/>micropay-api-gateway<br/>VPC Link Integration]
   end
 
-  subgraph Gateway["API Gateway"]
-    APIGW[API Gateway<br/>Authentication Layer]
-  end
-
-  subgraph Auth["Authentication Service"]
-    AUTH[auth_microservice<br/>register, login, logout<br/>Cognito + RDS]
-  end
-
-  subgraph Services["Protected Microservices"]
-    direction TB
-    PAYMENT[payment_microservice<br/>Stripe/PayPal Integration<br/>Payment Processing]
+  subgraph EKS_Cluster["EKS Cluster - micropay-eks-microservices"]
+    subgraph Discovery["Service Discovery"]
+      SD[Service Registry<br/>ConfigMap + ClusterIP<br/>Internal K8s DNS]
+    end
     
-    TRANSACTION[transactions_microservice<br/>Transaction History<br/>Balance Management]
+    subgraph Auth_Service["Auth Microservice Pod"]
+      AUTH[auth-microservice<br/>ClusterIP Service<br/>Port 8000<br/>register, login, logout]
+    end
     
-    NOTIFICATION[notifications_microservice<br/>Email SES<br/>Push Notifications<br/>Webhooks]
+    subgraph Transaction_Service["Transaction Microservice Pod"]
+      TRANSACTION[transaction-microservice<br/>ClusterIP Service<br/>Port 8000<br/>Transaction History<br/>Balance Management]
+    end
   end
 
-  subgraph Data["Data Layer"]
-    RDS[(PostgreSQL RDS<br/>users, transactions<br/>payments, notifications)]
-    COGNITO[(AWS Cognito<br/>User Pool)]
+  subgraph AWS_Data["AWS Data Layer"]
+    RDS[(PostgreSQL RDS<br/>micropay-rds-pgdb<br/>users, transactions)]
+    COGNITO[(AWS Cognito<br/>micropay-cognito<br/>User Pool)]
   end
 
-  subgraph External["External Services"]
-    SES[AWS SES<br/>Email]
-    SNS[AWS SNS<br/>Push Notifications]
-    STRIPE[Stripe API<br/>Payments]
+  subgraph AWS_Notifications["AWS Notification Services"]
+    SNS[AWS SNS<br/>micropay-sns<br/>Push Notifications]
+    SES[AWS SES<br/>Email Service]
+  end
+
+  subgraph External["External Payment Services"]
+    STRIPE[Stripe API<br/>Payment Processing]
+    PAYPAL[PayPal API<br/>Alternative Payments]
   end
 
   %% Client connections
@@ -78,44 +79,41 @@ flowchart TD
   MOBILE --> APIGW
   API_CLIENT --> APIGW
 
-  %% Service Discovery
-  SD -.->|Service Registration| AUTH
-  SD -.->|Service Registration| PAYMENT
-  SD -.->|Service Registration| TRANSACTION
-  SD -.->|Service Registration| NOTIFICATION
+  %% API Gateway to EKS through VPC Link
+  APIGW -->|VPC Link<br/>micropay-vpc-link| AUTH
+  APIGW -->|VPC Link<br/>micropay-vpc-link| TRANSACTION
 
-  %% API Gateway routing
-  APIGW -->|Authentication Required| AUTH
-  APIGW -->|JWT Validation| PAYMENT
-  APIGW -->|JWT Validation| TRANSACTION
-  APIGW -->|JWT Validation| NOTIFICATION
+  %% Internal Service Discovery
+  SD -.->|DNS Resolution| AUTH
+  SD -.->|DNS Resolution| TRANSACTION
 
-  %% Service interactions
+  %% Service interactions within cluster
+  AUTH -->|Internal K8s DNS| TRANSACTION
+  TRANSACTION -->|Internal K8s DNS| AUTH
+
+  %% External connections from EKS
   AUTH --> COGNITO
   AUTH --> RDS
-  
-  PAYMENT -->|Create Transaction| TRANSACTION
-  PAYMENT -->|Send Receipt| NOTIFICATION
-  PAYMENT --> STRIPE
-  PAYMENT --> RDS
-  
-  TRANSACTION -->|Balance Updates| NOTIFICATION
   TRANSACTION --> RDS
-  
-  NOTIFICATION --> SES
-  NOTIFICATION --> SNS
-  NOTIFICATION --> RDS
+  TRANSACTION --> SNS
+  AUTH --> SES
+  TRANSACTION --> STRIPE
+  TRANSACTION --> PAYPAL
 
   %% Styling
-  classDef auth fill:#e1f5fe
-  classDef service fill:#f3e5f5
-  classDef data fill:#e8f5e8
-  classDef external fill:#fff3e0
+  classDef auth fill:#e1f5fe,stroke:#01579b
+  classDef service fill:#f3e5f5,stroke:#4a148c
+  classDef data fill:#e8f5e8,stroke:#1b5e20
+  classDef external fill:#fff3e0,stroke:#e65100
+  classDef aws fill:#ff9800,stroke:#e65100
+  classDef eks fill:#2196f3,stroke:#0d47a1
   
   class AUTH auth
-  class PAYMENT,TRANSACTION,NOTIFICATION service
+  class TRANSACTION service
   class RDS,COGNITO data
-  class SES,SNS,STRIPE external
+  class STRIPE,PAYPAL external
+  class APIGW,SNS,SES aws
+  class SD,EKS_Cluster eks
 ```
 
 ## Preparing Microservice
@@ -335,12 +333,10 @@ rm -rf AWS_Payment_Microservices_Python
 
 ## **CloudShell**:
 ### Consola CloudShell
+- Uploda Kunernetes file (kubernetes_auth.yaml) (kubernetes_transaction.yaml)
+- Update Kubernetes Config (Connect kubectl to EKS)
 ```sh
-cd AWS_Payment_Microservices_Python
-```
-- Update Kubernete Config (Connect kubectl to EKS)
-```sh
-aws eks update-kubeconfig --name micropay-eks-microservices --region <REGION>
+aws eks update-kubeconfig --name micropay-eks-microservices --region us-east-1
 ```
 ```sh
 kubectl get nodes
@@ -358,10 +354,42 @@ kubectl delete all --all
 kubectl delete configmap --all
 kubectl delete secret --all
 ```
+- Cómo obtener estas URLs en tu cluster
+- http://<nombre-servicio>.<namespace>.svc.cluster.local:<puerto>
+```sh
+# Ver todos los servicios en todos los namespaces
+kubectl get svc --all-namespaces
+# Ver servicios en el namespace default (donde tienes tus microservicios)
+kubectl get svc -n default
+# Ver detalles específicos de un servicio
+kubectl describe svc auth-microservice -n default
+kubectl describe svc transaction-microservice -n default
+```
+- Auth Microservice
+http://auth-microservice.default.svc.cluster.local:8000
+- Transaction Microservice  
+http://transaction-microservice.default.svc.cluster.local:8000
+---
+
+## **Api Gateway**:
+- **Choose an API type**: HTTP API
+- **API name**: micropay-api-gateway
+
+### Api Gateway - VPC links
+- **Choose a VPC link version**: VPC link for HTTP APIs
+- **Name**: micropay-vpc-link
+- **VPC**: default
+- **Subnets**: default
+- **Security groups**: micropay-sg-web
+
+### Api Gateway - Integrations
+- **Attach this integration to a route**: http://10.100.127.183:8000
+- **Integration type**: Private resource
+- **VPC link**: micropay-vpc-link
 
 ---
 
-## **EB**: Elastic Beanstalk (opcional 1)
+## **EB**: Elastic Beanstalk (opcional 2)
 - auth_microservice
 [ECR + EB + auth microservice](/auth_microservice/Dockerfile)
 [Dockerrun.aws.json](/auth_microservice/Dockerrun.aws.json)
@@ -369,28 +397,5 @@ kubectl delete secret --all
 - transaction_microservice
 [ECR + EB + transaction microservice](/transaction_microservice/Dockerfile)
 [Dockerrun.aws.json](/transaction_microservice/Dockerrun.aws.json)
-
----
-
-## **Api Gateway**:
-- **Choose an API type**: HTTP API
-- **API name**: micropay-api-gateway
-### Api Gateway - Authorization - Create
-- **Authorizer settings**: micropay-jwt-authorizer
-- **Issuer URL**: Cognito - Token signing key URL
-- **Audience**: Cognito - App clients - Client ID
-
-## **Api Gateway**:
-- **Choose an API type**: HTTP API
-- **API name**: micropay-api-gateway
-  - **Integrations**:
-    - HTTP
-    - Method: ANY
-    - URL endpoint: http://micropay-eb-auth-service-env.eba-123.us-east-1.elasticbeanstalk.com
-- **Configure routes**:
-  - Auth
-    - **Method**: ANY
-    - **Resource path**: /
-    - **Integration target**: URL endpoint Auth
 
 ---
