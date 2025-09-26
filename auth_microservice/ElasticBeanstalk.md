@@ -1,4 +1,3 @@
-
 ## Preparing Microservice
 ```sh
 cd auth_microservice
@@ -137,7 +136,7 @@ rm -rf AWS_Payment_Microservices_Python
     },
     {
       "Name": "RDS_PASS",
-      "Value": ""
+      "Value": "TestingDB"
     },
     {
       "Name": "RDS_PORT",

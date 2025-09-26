@@ -44,7 +44,7 @@
     },
     {
       "Name": "RDS_PASS",
-      "Value": ""
+      "Value": "TestingDB"
     },
     {
       "Name": "RDS_PORT",

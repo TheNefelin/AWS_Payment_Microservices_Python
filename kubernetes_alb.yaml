@@ -1,0 +1,29 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: micropay-ingress
+  annotations:
+    # Esta anotación le indica al controlador de AWS que cree un ALB
+    kubernetes.io/ingress.class: alb
+    # Esquema público para internet
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    # Escucha en puerto 80 (HTTP)
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}]'
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /auth
+            pathType: Prefix
+            backend:
+              service:
+                name: auth-microservice
+                port:
+                  number: 8000
+          - path: /transaction
+            pathType: Prefix
+            backend:
+              service:
+                name: transaction-microservice
+                port:
+                  number: 8000

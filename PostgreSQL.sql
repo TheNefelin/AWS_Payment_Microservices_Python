@@ -21,3 +21,8 @@ INSERT INTO
   users (cognito_id, email)
 VALUES
   ('11111111-2222-3333-4444-555555555555', 'admin@micropay.com')
+
+-- 
+
+SELECT * FROM users;
+SELECT * FROM transactions;

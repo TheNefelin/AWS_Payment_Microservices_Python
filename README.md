@@ -155,8 +155,8 @@ deactivate
     - Type: PostgreSQL
     - Protocol: TCP
     - Port range: 5432
-    - Destination type: Anywhere-IPv4
-    - Destination: 0.0.0.0/0
+    - Destination type: Custom
+    - Destination: micropay-sg-web
     - Description: Acceso PostgreSQL
 - **Outbound rules**:
   - Outbound
@@ -190,8 +190,8 @@ deactivate
     - Type: PostgreSQL
     - Protocol: TCP
     - Port range: 5432
-    - Destination type: Anywhere-IPv4
-    - Destination: 0.0.0.0/0
+    - Destination type: Custom
+    - Destination: micropay-sg-rds
     - Description: Acceso PostgreSQL
 - **Outbound rules**:
   - Outbound
@@ -369,6 +369,7 @@ kubectl describe svc transaction-microservice -n default
 http://auth-microservice.default.svc.cluster.local:8000
 - Transaction Microservice  
 http://transaction-microservice.default.svc.cluster.local:8000
+
 ---
 
 ## **Api Gateway**:
