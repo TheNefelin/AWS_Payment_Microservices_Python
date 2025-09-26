@@ -44,7 +44,7 @@ kind: Service
 metadata:
   name: auth-microservice
 spec:
-  type: ClusterIP
+  type: ClusterIP # LoadBalancer
   selector:
     app: auth-microservice
   ports:

@@ -44,7 +44,7 @@ kind: Service
 metadata:
   name: transaction-microservice
 spec:
-  type: ClusterIP
+  type: ClusterIP # LoadBalancer
   selector:
     app: transaction-microservice
   ports:
