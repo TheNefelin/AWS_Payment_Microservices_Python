@@ -1,7 +1,7 @@
 {
   "AWSEBDockerrunVersion": "1",
   "Image": {
-    "Name": "123.dkr.ecr.us-east-1.amazonaws.com/micropay-auth-service-repo:latest",
+    "Name": ".../micropay-auth-service-repo:latest",
     "Update": "true"
   },
   "Ports": [
@@ -15,6 +15,10 @@
       "Value": "us-east-1"
     },
     {
+      "Name": "SNS_TOPIC_ARN",
+      "Value": ""
+    },    
+    {
       "Name": "COGNITO_USER_POOL_ID",
       "Value": ""
     },
@@ -27,13 +31,17 @@
       "Value": ""
     },
     {
-      "Name": "SNS_TOPIC_ARN",
-      "Value": ""
-    },
-    {
       "Name": "RDS_HOST",
       "Value": ""
     },
+    {
+      "Name": "RDS_PORT",
+      "Value": "5432"
+    },
+    {
+      "Name": "RDS_PASS",
+      "Value": "TestingDB"
+    },    
     {
       "Name": "RDS_NAME",
       "Value": "postgres"
@@ -41,14 +49,6 @@
     {
       "Name": "RDS_USER",
       "Value": "postgres"
-    },
-    {
-      "Name": "RDS_PASS",
-      "Value": "TestingDB"
-    },
-    {
-      "Name": "RDS_PORT",
-      "Value": "5432"
     }
   ]
 }

@@ -1,0 +1,72 @@
+{
+  "cpu": 0,
+  "environment": [
+    {
+      "name": "AWS_REGION",
+      "value": "us-east-1"
+    },
+    {
+      "name": "SNS_TOPIC_ARN",
+      "value": ""
+    },
+    {
+      "name": "COGNITO_USER_POOL_ID",
+      "value": ""
+    },
+    {
+      "name": "COGNITO_CLIENT_ID",
+      "value": ""
+    },    
+    {
+      "name": "COGNITO_CLIENT_SECRET",
+      "value": ""
+    },
+    {
+      "name": "RDS_HOST",
+      "value": ""
+    },    
+    {
+      "name": "RDS_PORT",
+      "value": "5432"
+    },
+    {
+      "name": "RDS_PASS",
+      "value": "TestingDB"
+    },
+    {
+      "name": "RDS_NAME",
+      "value": "postgres"
+    },    
+    {
+      "name": "RDS_USER",
+      "value": "postgres"
+    }
+  ],
+  "environmentFiles": [],
+  "essential": true,
+  "image": ".../micropay-transaction-service-repo:latest",
+  "logConfiguration": {
+    "logDriver": "awslogs",
+    "options": {
+      "awslogs-group": "/ecs/micropay-ecs-transaction-task",
+      "awslogs-create-group": "true",
+      "awslogs-region": "us-east-1",
+      "awslogs-stream-prefix": "ecs"
+    },
+    "secretOptions": []
+  },
+  "mountPoints": [],
+  "name": "dotnet-transaction",
+  "portMappings": [
+    {
+      "appProtocol": "http",
+      "containerPort": 8000,
+      "hostPort": 8000,
+      "name": "dotnet-transaction-8000-tcp",
+      "protocol": "tcp"
+    }
+  ],
+  "systemControls": [],
+  "ulimits": [],
+  "volumesFrom": []
+}

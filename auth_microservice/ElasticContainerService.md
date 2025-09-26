@@ -70,26 +70,24 @@ rm -rf AWS_Payment_Microservices_Python
 - **Amazon EC2 instances**: unchek
 
 ### ECS - Task definitions
-  - **Task definition family**: micropay-ecs-auth-task
-  - **AWS Fargate**: check
-  - **Task role**: LabRole
-  - **Task execution role**: LabRole
-  - **Container details**: dotnet-auth
-  - **Image URI**: ...amazonaws.com/micropay-auth-service-repo:latest
-  - **Container port**: 8000
-  - **Environment variables**: 
-  - **COGNITO_USER_POOL_ID**
-    - **Value**: AddValue
-  - **COGNITO_CLIENT_ID**
-    - **Value**: AddValue
-  - **COGNITO_CLIENT_SECRET**
-    - **Value**: AddValue
-  - **SNS_TOPIC_ARN**
-    - **Value**: AddValue
-  - **DB_HOST**
-    - **Value**: AddValue
-  - **DB_PASS**
-    - **Value**: TestingDB
+- **Task definition family**: micropay-ecs-auth-task
+- **AWS Fargate**: check
+- **Task role**: LabRole
+- **Task execution role**: LabRole
+- **Container details**: dotnet-auth
+- **Image URI**: ...amazonaws.com/micropay-auth-service-repo:latest
+- **Container port**: 8000
+- **Environment variables**: 
+  - **AWS_REGION**: us-east-1
+  - **SNS_TOPIC_ARN**: AddValue
+  - **COGNITO_USER_POOL_ID**: AddValue
+  - **COGNITO_CLIENT_ID**: AddValue
+  - **COGNITO_CLIENT_SECRET**: AddValue
+  - **RDS_HOST**: AddValue
+  - **RDS_PORT**: 5432  
+  - **RDS_PASS**: TestingDB
+  - **RDS_NAME**: postgres
+  - **RDS_USER**: postgres
 
 ### ECS - Clouster - Service
 - **Task definition family**: micropay-ecs-auth-task

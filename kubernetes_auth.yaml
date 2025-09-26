@@ -14,30 +14,30 @@ spec:
     spec:
       containers:
       - name: auth-microservice
-        image: <YOUR_ECR_CATALOG_IMAGE>
+        image: .../micropay-auth-service-repo:latest
         ports:
         - containerPort: 8000
         env:
         - name: AWS_REGION
           value: us-east-1
-        - name: COGNITO_USER_POOL_ID
-          value: <VALUE>
-        - name: COGNITO_CLIENT_ID
-          value: <VALUE>
-        - name: COGNITO_CLIENT_SECRET
-          value: <VALUE>
         - name: SNS_TOPIC_ARN
-          value: <VALUE>
-        - name: DB_HOST
-          value: <VALUE>
-        - name: DB_USER
-          value: postgres
-        - name: DB_NAME
-          value: postgres
-        - name: DB_PASS
-          value: TestingDB
-        - name: DB_PORT
+          value:       
+        - name: COGNITO_USER_POOL_ID
+          value: 
+        - name: COGNITO_CLIENT_ID
+          value: 
+        - name: COGNITO_CLIENT_SECRET
+          value: 
+        - name: RDS_HOST
+          value: 
+        - name: RDS_PORT
           value: "5432"
+        - name: RDS_PASS
+          value: TestingDB          
+        - name: RDS_NAME
+          value: postgres          
+        - name: RDS_USER
+          value: postgres          
 ---
 apiVersion: v1
 kind: Service

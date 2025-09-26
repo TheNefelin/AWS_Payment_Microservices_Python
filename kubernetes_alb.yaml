@@ -3,11 +3,8 @@ kind: Ingress
 metadata:
   name: micropay-ingress
   annotations:
-    # Esta anotación le indica al controlador de AWS que cree un ALB
     kubernetes.io/ingress.class: alb
-    # Esquema público para internet
     alb.ingress.kubernetes.io/scheme: internet-facing
-    # Escucha en puerto 80 (HTTP)
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}]'
 spec:
   rules:
